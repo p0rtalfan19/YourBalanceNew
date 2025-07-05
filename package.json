@@ -1,7 +1,7 @@
 {
   "name": "bolt-expo-starter",
   "main": "expo-router/entry",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "scripts": {
     "dev": "EXPO_NO_TELEMETRY=1 expo start",
@@ -11,6 +11,7 @@
     "ios": "expo run:ios"
   },
   "dependencies": {
+    "@expo-google-fonts/roboto": "^0.4.0",
     "@expo/vector-icons": "^14.1.0",
     "@lucide/lab": "^0.1.2",
     "@react-navigation/bottom-tabs": "^7.4.2",
@@ -30,7 +31,6 @@
     "expo-symbols": "~0.4.5",
     "expo-system-ui": "~5.0.8",
     "expo-web-browser": "~14.1.6",
-    "@expo-google-fonts/roboto": "^0.4.0",
     "lucide-react-native": "^0.522.0",
     "react": "19.0.0",
     "react-dom": "19.1.0",
@@ -46,6 +46,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.27.4",
+    "@react-native-community/cli": "^18.0.0",
     "@types/react": "~19.1.8",
     "typescript": "~5.8.3"
   }

@@ -25,7 +25,8 @@
       "typedRoutes": true
     },
     "android": {
-      "package": "com.anonymous.boltexponativewind"
+      "package": "com.anonymous.boltexponativewind",
+      "usesCleartextTraffic": true
     }
   }
 }

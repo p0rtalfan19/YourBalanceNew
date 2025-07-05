@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 export default function NotFoundScreen() {
   return (
-    <>
+    <div>
       <Stack.Screen options={{ title: 'Ошибка!' }} />
       <View style={styles.container}>
         <Text style={styles.text}>Этот экран не существует.</Text>
@@ -11,7 +11,7 @@ export default function NotFoundScreen() {
           <Text>Перейти на главный экран</Text>
         </Link>
       </View>
-    </>
+    </div>
   );
 }
 

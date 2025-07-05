@@ -1,8 +1,8 @@
 import { CardData, ApiResponse, Transaction } from '@/types';
 
 // Mock API configuration
-const API_BASE_URL = 'https://your-api-backend.com/api';
-const API_TIMEOUT = 10000; // 10 seconds
+const API_BASE_URL = 'http://192.168.1.202:5000';
+const API_TIMEOUT = 100000; // 10 seconds
 
 // Storage key for caching
 const STORAGE_KEY = 'yourbalance_card_data';
@@ -16,23 +16,16 @@ export async function processCardImage(imageUri: string): Promise<ApiResponse<Ca
     const formData = new FormData();
     formData.append('image', {
       uri: imageUri,
+      name: 'photo.jpg',
       type: 'image/jpeg',
-      name: 'card_image.jpg',
     } as any);
-
-    // Add additional parameters
-    formData.append('scan_type', 'balance_check');
-    formData.append('quality', 'high');
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
 
-    const response = await fetch(`${API_BASE_URL}/scan-card`, {
+    const response = await fetch(`${API_BASE_URL}/get_balance`, {
       method: 'POST',
       body: formData,
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
       signal: controller.signal,
     });
 
@@ -43,13 +36,14 @@ export async function processCardImage(imageUri: string): Promise<ApiResponse<Ca
     }
 
     const data = await response.json();
-
-    if (data.success) {
+    console.log(data);
+    if (data.balance !== null) {
       // Cache the successful result
       await storeCardData(data.data);
+      console.log(data.data);
       return {
         success: true,
-        data: data.data,
+        data: data,
       };
     } else {
       return {

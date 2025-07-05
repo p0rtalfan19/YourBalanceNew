@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { processCardImage } from '@/services/api';
 
 export default function BalanceCard() {
   const [image, setImage] = useState<string | null>(null);
@@ -30,25 +31,14 @@ export default function BalanceCard() {
     if (!result.canceled && result.assets && result.assets.length > 0) {
       const uri = result.assets[0].uri;
       setImage(uri);
-
-      // Отправка на сервер
-      const formData = new FormData();
-      formData.append('image', {
-        uri,
-        name: 'photo.jpg',
-        type: 'image/jpeg',
-      } as any);
-
+      
       try {
-        const response = await fetch('http://192.168.1.10:5000/get_balance', {
-          method: 'POST',
-          body: formData,
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
-        const data = await response.json();
-        setBalance(data.balance);
+        const response = await processCardImage(uri);
+        if (response.success && response.data) {
+          setBalance(response.data.balance);
+        } else {
+          setBalance('Ошибка: ' + (response.error || 'Неизвестная ошибка'));
+        }
       } catch (e) {
         setBalance('Ошибка соединения');
       }
