@@ -42,36 +42,11 @@ export default function MainScreen() {
   };
 
   const handleImageCapture = async (imageUri: string) => {
-    setIsProcessing(true);
     setShowCamera(false);
     setShowGallery(false);
 
-    try {
-      const result = await processCardImage(imageUri);
-      if (result.success) {
-        // Reload card data after successful scan
-        await loadCardData();
-        Alert.alert(
-          'Успех!',
-          `Карта успешно отсканирована. Баланс: ${result.data?.balance || '0.00'}.`,
-          [{ text: 'ОК' }]
-        );
-      } else {
-        Alert.alert(
-          'Сканирование не удалось',
-          result.error || 'Не удалось обработать изображение карты. Пожалуйста, попробуйте еще раз.',
-          [{ text: 'ОК' }]
-        );
-      }
-    } catch (error) {
-      Alert.alert(
-        'Ошибка',
-        'Произошла непредвиденная ошибка. Проверьте соединение и попробуйте снова.',
-        [{ text: 'ОК' }]
-      );
-    } finally {
-      setIsProcessing(false);
-    }
+    // Просто обновляем данные карты, так как обработка уже произошла в CameraScanner
+    await loadCardData();
   };
 
   const handleRefresh = async () => {

@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import { X, Slash as FlashOn, FlashlightOff as FlashOff, RotateCcw, Camera } from 'lucide-react-native';
+import { processCardImage } from '@/services/api';
 
 interface CameraScannerProps {
   onCapture: (imageUri: string) => void;
@@ -18,6 +19,7 @@ interface CameraScannerProps {
 export default function CameraScanner({ onCapture, onClose }: CameraScannerProps) {
   const [facing, setFacing] = useState<CameraType>('back');
   const [flash, setFlash] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView>(null);
 
@@ -62,8 +64,10 @@ export default function CameraScanner({ onCapture, onClose }: CameraScannerProps
   };
 
   const takePicture = async () => {
-    if (!cameraRef.current) return;
+    if (!cameraRef.current || isProcessing) return;
 
+    setIsProcessing(true);
+    
     try {
       const photo = await cameraRef.current.takePictureAsync({
         quality: 0.8,
@@ -72,13 +76,32 @@ export default function CameraScanner({ onCapture, onClose }: CameraScannerProps
       });
 
       if (photo?.uri) {
-        onCapture(photo.uri);
+        // Отправляем изображение на сервер для обработки
+        const result = await processCardImage(photo.uri);
+        
+        if (result.success) {
+          // Передаем результат в родительский компонент для обновления UI
+          onCapture(photo.uri);
+          Alert.alert(
+            'Успех!',
+            `Карта успешно отсканирована. Баланс: ${result.data?.balance || '0.00'}.`,
+            [{ text: 'ОК' }]
+          );
+        } else {
+          Alert.alert(
+            'Сканирование не удалось',
+            result.error || 'Не удалось обработать изображение карты. Пожалуйста, попробуйте еще раз.',
+            [{ text: 'ОК' }]
+          );
+        }
       } else {
         Alert.alert('Ошибка', 'Не удалось сделать снимок. Пожалуйста, попробуйте ещё раз.');
       }
     } catch (error) {
       console.error('Camera capture error:', error);
       Alert.alert('Ошибка', 'Не удалось сделать снимок. Пожалуйста, попробуйте ещё раз.');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -114,21 +137,23 @@ export default function CameraScanner({ onCapture, onClose }: CameraScannerProps
             <View style={[styles.corner, styles.bottomRight]} />
           </View>
           <Text style={styles.instructionText}>
-            Поместите карту в рамку
+            {isProcessing ? 'Обработка изображения...' : 'Поместите карту в рамку'}
           </Text>
         </View>
 
         {/* Bottom Controls */}
         <View style={styles.controls}>
           <TouchableOpacity
-            style={styles.controlButton}
-            onPress={toggleCameraFacing}>
+            style={[styles.controlButton, isProcessing && styles.disabledButton]}
+            onPress={toggleCameraFacing}
+            disabled={isProcessing}>
             <RotateCcw size={24} color="#ffffff" />
           </TouchableOpacity>
           
           <TouchableOpacity
-            style={styles.captureButton}
-            onPress={takePicture}>
+            style={[styles.captureButton, isProcessing && styles.disabledCaptureButton]}
+            onPress={takePicture}
+            disabled={isProcessing}>
             <View style={styles.captureButtonInner} />
           </TouchableOpacity>
           
@@ -311,6 +336,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  disabledButton: {
+    opacity: 0.5,
+  },
   captureButton: {
     width: 80,
     height: 80,
@@ -320,6 +348,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 4,
     borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  disabledCaptureButton: {
+    backgroundColor: '#BDBDBD',
+    borderColor: 'rgba(189, 189, 189, 0.3)',
   },
   captureButtonInner: {
     width: 60,

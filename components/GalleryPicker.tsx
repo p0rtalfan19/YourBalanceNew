@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { X, Image as ImageIcon, Upload } from 'lucide-react-native';
+import { processCardImage } from '@/services/api';
 
 interface GalleryPickerProps {
   onSelect: (imageUri: string) => void;
@@ -45,7 +46,24 @@ export default function GalleryPicker({ onSelect, onClose }: GalleryPickerProps)
       });
 
       if (!result.canceled && result.assets[0]) {
-        onSelect(result.assets[0].uri);
+        // Отправляем изображение на сервер для обработки
+        const apiResult = await processCardImage(result.assets[0].uri);
+        
+        if (apiResult.success) {
+          // Передаем результат в родительский компонент для обновления UI
+          onSelect(result.assets[0].uri);
+          Alert.alert(
+            'Успех!',
+            `Карта успешно обработана. Баланс: ${apiResult.data?.balance || '0.00'}.`,
+            [{ text: 'ОК' }]
+          );
+        } else {
+          Alert.alert(
+            'Обработка не удалась',
+            apiResult.error || 'Не удалось обработать изображение карты. Пожалуйста, попробуйте еще раз.',
+            [{ text: 'ОК' }]
+          );
+        }
       }
     } catch (error) {
       console.error('Image selection error:', error);
@@ -94,7 +112,7 @@ export default function GalleryPicker({ onSelect, onClose }: GalleryPickerProps)
           activeOpacity={0.8}>
           <Upload size={24} color="#ffffff" />
           <Text style={styles.selectButtonText}>
-            {isSelecting ? 'Выбор...' : 'Открыть галерею'}
+            {isSelecting ? 'Обработка...' : 'Открыть галерею'}
           </Text>
         </TouchableOpacity>
 
